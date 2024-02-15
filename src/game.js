@@ -12,12 +12,14 @@ import ColorReplacePipelinePlugin from 'phaser3-rex-plugins/plugins/colorreplace
 class PlayGame extends Phaser.Scene {
   constructor() {
     super('PlayGame');
+    this.gameStarted = false; // Ajoutez une propriété pour gérer l'état du jeu
   }
 
   preload() {
     this.load.image('tile', '/tile.png');
     this.load.image('hero', '/hero.png');
     this.load.tilemapTiledJSON('level', '/level-0.json');
+    this.load.image('startButton', '/start-button.png'); // Assurez-vous d'avoir une image pour le bouton
   }
 
   create() {
@@ -76,9 +78,33 @@ class PlayGame extends Phaser.Scene {
         hero.destroy();
       });
     });
+
+    // Créer le bouton de démarrage
+    this.startButton = this.add
+      .image(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        'startButton'
+      )
+      .setInteractive();
+    this.startButton.setDisplaySize(150, 100);
+    // Gérer l'événement de clic
+    this.startButton.on('pointerdown', () => {
+      this.startGame();
+    });
+  }
+
+  startGame() {
+    // Démarrer le jeu
+    this.gameStarted = true;
+    this.startButton.visible = false; // Masquer le bouton
+    // Ajoutez ici toute autre logique de démarrage du jeu
   }
 
   update() {
+    if (!this.gameStarted) {
+      return; // Ne mettez à jour les joueurs que si le jeu a démarré
+    }
     this.players.forEach(({ player, hero }) => {
       if (isHost()) {
         hero.update();
