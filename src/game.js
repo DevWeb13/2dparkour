@@ -31,6 +31,10 @@ class PlayGame extends Phaser.Scene {
       tileHeight: 64,
     });
 
+    // Player start position
+    const startX = this.map.layer.x;
+    const startY = this.map.layer.y;
+
     // adding tiles (actually one tile) to tilemap
     this.tileset = this.map.addTilesetImage('tileset01', 'tile');
 
@@ -58,8 +62,8 @@ class PlayGame extends Phaser.Scene {
       const hero = new Player(
         this,
         this.layer,
-        this.cameras.main.width / 2 + this.players.length * 20,
-        440,
+        startX,
+        startY,
         player.getProfile().color.hex,
         joystick
       );

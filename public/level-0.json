@@ -32,8 +32,8 @@
       "type": "tilelayer",
       "visible": true,
       "width": 14,
-      "x": 0,
-      "y": 0
+      "x": 50,
+      "y": 50
     }
   ],
   "nextlayerid": 2,

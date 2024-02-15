@@ -10,12 +10,12 @@ var playerOptions = {
   // allow how many jumps (>1 for mid air jumps)
   playerMaxJumps: 1,
 
-  // should be below acceleration. 
+  // should be below acceleration.
   // You can disable "slippery floor" setting by giving ridiculously high value
-  playerDrag: 700,// 9999,
+  playerDrag: 700, // 9999,
 
-  playerAcceleration: 1500
-}
+  playerAcceleration: 1500,
+};
 export default class Player {
   constructor(scene, layerTiles, x, y, playerColor, joystick) {
     this.scene = scene;
@@ -26,14 +26,14 @@ export default class Player {
     this.jumpKeyDownAt = 0;
 
     // adding the hero sprite and replace it's color with playerColor
-    this.hero = scene.physics.add.sprite(x, y, "hero");
+    this.hero = scene.physics.add.sprite(x, y, 'hero');
     scene.plugins.get('rexColorReplacePipeline').add(this.hero, {
-      originalColor: 0x2B2FDA,
+      originalColor: 0x2b2fda,
       newColor: playerColor,
-      epsilon: 0.4
+      epsilon: 0.4,
     });
     // this.hero = scene.add.rectangle(x, y, 20, 20, playerColor);
-    
+
     scene.physics.add.existing(this.hero);
 
     // scene.physics.world.addCollider(this.hero, scene.layer);
@@ -41,12 +41,15 @@ export default class Player {
     // scene.physics.add.collider(this.hero, scene.layer, null, null, this);
 
     // setting hero anchor point
-    this.hero.setOrigin(0.5);
+    this.hero.setOrigin(0.1);
 
     this.hero.body.setCollideWorldBounds(true);
 
     // Set player minimum and maximum movement speed
-    this.hero.body.setMaxVelocity(playerOptions.playerSpeed, playerOptions.playerSpeed * 10);
+    this.hero.body.setMaxVelocity(
+      playerOptions.playerSpeed,
+      playerOptions.playerSpeed * 10
+    );
 
     // Add drag to the player that slows them down when they are not accelerating
     this.hero.body.setDrag(playerOptions.playerDrag, 0);
@@ -77,7 +80,9 @@ export default class Player {
         this.hero.flipX = !this.hero.flipX;
 
         // change the horizontal velocity too. This way the hero will jump off the wall
-        this.hero.body.setVelocityX(playerOptions.playerSpeed * (this.hero.flipX ? -1 : 1));
+        this.hero.body.setVelocityX(
+          playerOptions.playerSpeed * (this.hero.flipX ? -1 : 1)
+        );
       }
 
       // hero is not on the wall anymore
@@ -85,7 +90,7 @@ export default class Player {
     }
   }
 
-  pos(){
+  pos() {
     return { x: this.hero.body.x, y: this.hero.body.y };
   }
 
@@ -94,11 +99,11 @@ export default class Player {
     this.hero.body.y = y;
   }
 
-  body(){
+  body() {
     return this.hero.body;
   }
 
-  destroy(){
+  destroy() {
     this.hero.destroy();
   }
 
@@ -118,7 +123,10 @@ export default class Player {
       this.onWall = true;
 
       // drag on wall only if key pressed and going downwards.
-      if (this.rightInputIsActive() && this.hero.body.velocity.y > playerOptions.playerWallDragMaxVelocity) {
+      if (
+        this.rightInputIsActive() &&
+        this.hero.body.velocity.y > playerOptions.playerWallDragMaxVelocity
+      ) {
         this.hero.body.setVelocityY(playerOptions.playerWallDragMaxVelocity);
       }
     }
@@ -127,7 +135,10 @@ export default class Player {
       this.onWall = true;
 
       // drag on wall only if key pressed and going downwards.
-      if (this.leftInputIsActive() && this.hero.body.velocity.y > playerOptions.playerWallDragMaxVelocity) {
+      if (
+        this.leftInputIsActive() &&
+        this.hero.body.velocity.y > playerOptions.playerWallDragMaxVelocity
+      ) {
         this.hero.body.setVelocityY(playerOptions.playerWallDragMaxVelocity);
       }
     }
@@ -153,8 +164,7 @@ export default class Player {
     }
 
     if ((this.onWall || this.jumps > 0) && this.spaceInputIsActive(150)) {
-      if (this.hero.body.blocked.down)
-        this.isFirstJump = true;
+      if (this.hero.body.blocked.down) this.isFirstJump = true;
       this.handleJump();
       this.jumping = true;
     }
@@ -170,15 +180,15 @@ export default class Player {
   }
 
   spaceInputIsActive(duration) {
-    if (!this.jumpKeyIsDown && this.joystick.isPressed("jump")) {
+    if (!this.jumpKeyIsDown && this.joystick.isPressed('jump')) {
       this.jumpKeyIsDown = true;
       this.jumpKeyDownAt = Date.now();
     }
-    return this.jumpKeyIsDown && ((Date.now() - this.jumpKeyDownAt) < duration);
+    return this.jumpKeyIsDown && Date.now() - this.jumpKeyDownAt < duration;
   }
 
   spaceInputReleased() {
-    if (!this.joystick.isPressed("jump")) {
+    if (!this.joystick.isPressed('jump')) {
       this.jumpKeyIsDown = false;
       return true;
     }
@@ -186,10 +196,10 @@ export default class Player {
   }
 
   rightInputIsActive() {
-    return this.joystick.dpad().x === "right";
+    return this.joystick.dpad().x === 'right';
   }
 
   leftInputIsActive() {
-    return this.joystick.dpad().x === "left";
+    return this.joystick.dpad().x === 'left';
   }
 }
