@@ -16,6 +16,7 @@ var playerOptions = {
 
   playerAcceleration: 1500,
 };
+
 export default class Player {
   constructor(scene, layerTiles, x, y, playerColor, joystick) {
     this.scene = scene;

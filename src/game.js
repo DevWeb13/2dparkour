@@ -1,5 +1,9 @@
+// src/scenes/PlayGames.js
+
 import Phaser from 'phaser';
-import Player from './player';
+import PlayGame from './scenes/PlayGame';
+import StartMenu from './scenes/StartMenu';
+
 import {
   onPlayerJoin,
   insertCoin,
@@ -9,117 +13,7 @@ import {
 } from 'playroomkit';
 import ColorReplacePipelinePlugin from 'phaser3-rex-plugins/plugins/colorreplacepipeline-plugin.js';
 
-class PlayGame extends Phaser.Scene {
-  constructor() {
-    super('PlayGame');
-    this.gameStarted = false; // Ajoutez une propriété pour gérer l'état du jeu
-  }
-
-  preload() {
-    this.load.image('tile', '/tile.png');
-    this.load.image('hero', '/hero.png');
-    this.load.tilemapTiledJSON('level', '/level-0.json');
-    this.load.image('startButton', '/start-button.png'); // Assurez-vous d'avoir une image pour le bouton
-  }
-
-  create() {
-    // setting background color
-    this.cameras.main.setBackgroundColor(gameOptions.bgColor);
-
-    // creatin of "level" tilemap
-    this.map = this.make.tilemap({
-      key: 'level',
-      tileWidth: 64,
-      tileHeight: 64,
-    });
-
-    // Player start position
-    const startX = this.map.layer.x;
-    const startY = this.map.layer.y;
-
-    // adding tiles (actually one tile) to tilemap
-    this.tileset = this.map.addTilesetImage('tileset01', 'tile');
-
-    // which layer should we render? That's right, "layer01"
-    this.layer = this.map.createLayer('layer01', this.tileset, 0, 0);
-
-    this.layer.setCollisionBetween(0, 1, true);
-
-    // loading level tilemap
-    this.physics.world.setBounds(
-      0,
-      0,
-      this.map.widthInPixels,
-      this.map.heightInPixels
-    );
-
-    // players and their controllers
-    this.players = [];
-
-    onPlayerJoin(async (player) => {
-      const joystick = new Joystick(player, {
-        type: 'dpad',
-        buttons: [{ id: 'jump', label: 'JUMP' }],
-      });
-      const hero = new Player(
-        this,
-        this.layer,
-        startX,
-        startY,
-        player.getProfile().color.hex,
-        joystick
-      );
-
-      this.players.push({ player, hero, joystick });
-      player.onQuit(() => {
-        this.players = this.players.filter(
-          ({ player: _player }) => _player !== player
-        );
-        hero.destroy();
-      });
-    });
-
-    // Créer le bouton de démarrage
-    this.startButton = this.add
-      .image(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        'startButton'
-      )
-      .setInteractive();
-    this.startButton.setDisplaySize(150, 100);
-    // Gérer l'événement de clic
-    this.startButton.on('pointerdown', () => {
-      this.startGame();
-    });
-  }
-
-  startGame() {
-    // Démarrer le jeu
-    this.gameStarted = true;
-    this.startButton.visible = false; // Masquer le bouton
-    // Ajoutez ici toute autre logique de démarrage du jeu
-  }
-
-  update() {
-    if (!this.gameStarted) {
-      return; // Ne mettez à jour les joueurs que si le jeu a démarré
-    }
-    this.players.forEach(({ player, hero }) => {
-      if (isHost()) {
-        hero.update();
-        player.setState('pos', hero.pos());
-      } else {
-        const pos = player.getState('pos');
-        if (pos) {
-          hero.setPos(pos.x, pos.y);
-        }
-      }
-    });
-  }
-}
-
-var gameOptions = {
+export const gameOptions = {
   // width of the game, in pixels
   gameWidth: 14 * 32,
   // height of the game, in pixels
@@ -134,7 +28,7 @@ const config = {
   width: gameOptions.gameWidth,
   height: gameOptions.gameHeight,
   parent: 'container',
-  scene: [PlayGame],
+  scene: [StartMenu, PlayGame],
   physics: {
     default: 'arcade',
     arcade: {
