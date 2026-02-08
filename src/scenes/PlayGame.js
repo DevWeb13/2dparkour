@@ -40,8 +40,12 @@ export default class PlayGame extends Phaser.Scene {
 
     onPlayerJoin(async (player) => {
       const joystick = new Joystick(player, {
-        type: 'dpad',
-        buttons: [{ id: 'jump', label: 'JUMP' }],
+        type: 'buttons',
+        buttons: [
+          { id: 'left', label: '←' },
+          { id: 'right', label: '→' },
+          { id: 'jump', label: 'JUMP' },
+        ],
       });
 
       const hero = new Player(
