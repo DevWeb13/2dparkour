@@ -6,7 +6,7 @@ import { gameOptions } from '../game';
 import { onPlayerJoin, isHost, Joystick, myPlayer } from 'playroomkit';
 
 const COURSE_ZONE_COUNT = 3;
-const RUNE_RADIUS = 26;
+const RUNE_RADIUS = 22;
 
 export default class PlayGame extends Phaser.Scene {
   constructor() {
@@ -21,7 +21,6 @@ export default class PlayGame extends Phaser.Scene {
     this.load.image('tile', '/tile.png');
     this.load.image('hero', '/hero.png');
 
-    // Charge les 3 maps pour construire un parcours horizontal en 3 zones.
     this.load.tilemapTiledJSON('level-1', '/level-1.json');
     this.load.tilemapTiledJSON('level-2', '/level-2.json');
     this.load.tilemapTiledJSON('level-3', '/level-3.json');
@@ -55,14 +54,12 @@ export default class PlayGame extends Phaser.Scene {
       const entry = {
         player,
         hero,
-        joystick,
         runes: new Set(),
         finishedAtMs: null,
       };
 
       this.players.push(entry);
 
-      // On suit la caméra du joueur local (host ou client).
       const me = myPlayer();
       if (me && me.id === player.id) {
         this.cameras.main.startFollow(hero.body(), true, 0.1, 0.1);
@@ -81,54 +78,56 @@ export default class PlayGame extends Phaser.Scene {
 
     const zoneWidth = maps[0].width;
     const zoneHeight = maps[0].height;
-
     const mergedData = Array.from({ length: zoneHeight }, () => []);
 
     maps.forEach((mapData) => {
       const raw = mapData.layers.find((layer) => layer.name === 'layer01').data;
       for (let y = 0; y < zoneHeight; y++) {
         for (let x = 0; x < zoneWidth; x++) {
-          mergedData[y].push(raw[y * zoneWidth + x]);
+          const tiledGid = raw[y * zoneWidth + x];
+          // Tiled: 0 = empty, 1 = first tile. Phaser data-map: -1 = empty, 0 = first tile.
+          mergedData[y].push(tiledGid === 0 ? -1 : tiledGid - 1);
         }
       }
     });
 
     this.map = this.make.tilemap({
       data: mergedData,
-      tileWidth: 64,
-      tileHeight: 64,
+      tileWidth: 32,
+      tileHeight: 32,
     });
 
-    this.tileset = this.map.addTilesetImage('tile', 'tile', 64, 64, 0, 0, 0);
+    this.tileset = this.map.addTilesetImage('tile', 'tile', 32, 32, 0, 0, 0);
     this.layer = this.map.createLayer(0, this.tileset, 0, 0);
-    this.layer.setCollisionBetween(0, 1, true);
+    this.layer.setCollisionByExclusion([-1]);
 
     this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
-    this.spawnPoint = { x: 64, y: this.map.heightInPixels - 180 };
+    this.spawnPoint = { x: 40, y: this.map.heightInPixels - 96 };
 
     const third = this.map.widthInPixels / COURSE_ZONE_COUNT;
-    const y = this.map.heightInPixels - 260;
+    const baseY = this.map.heightInPixels - 150;
 
     this.runes = [
-      this.createRune(third * 0.5, y, 0),
-      this.createRune(third * 1.5, y - 80, 1),
-      this.createRune(third * 2.3, y - 40, 2),
+      this.createRune(third * 0.38, baseY - 65, 0),
+      this.createRune(third * 1.44, baseY - 115, 1),
+      this.createRune(third * 2.35, baseY - 85, 2),
     ];
 
     this.finishZone = this.add.rectangle(
-      this.map.widthInPixels - 120,
-      this.map.heightInPixels - 240,
-      120,
-      240,
+      this.map.widthInPixels - 70,
+      this.map.heightInPixels - 130,
+      88,
+      160,
       0x00ff88,
       0.25
     );
+
     this.add
-      .text(this.finishZone.x - 45, this.finishZone.y - 95, 'FIN', {
+      .text(this.finishZone.x - 27, this.finishZone.y - 75, 'FIN', {
         color: '#003322',
-        fontSize: '24px',
+        fontSize: '18px',
         fontStyle: 'bold',
       })
       .setScrollFactor(1);
@@ -136,19 +135,19 @@ export default class PlayGame extends Phaser.Scene {
 
   createRune(x, y, id) {
     const rune = this.add.circle(x, y, RUNE_RADIUS, 0xffcc00, 0.9);
-    this.add.text(x - 8, y - 14, `${id + 1}`, {
+    this.add.text(x - 7, y - 12, `${id + 1}`, {
       color: '#402d00',
-      fontSize: '22px',
+      fontSize: '18px',
       fontStyle: 'bold',
     });
     return { id, x, y, view: rune };
   }
 
   createRaceUI() {
-    this.titleText = this.add
-      .text(12, 10, 'DUEL PARKOUR — Récupère les 3 runes puis touche la zone FIN', {
+    this.add
+      .text(12, 10, 'DUEL PARKOUR — Récupère 3 runes puis FIN', {
         color: '#ffffff',
-        fontSize: '20px',
+        fontSize: '18px',
         stroke: '#000000',
         strokeThickness: 4,
       })
@@ -156,7 +155,7 @@ export default class PlayGame extends Phaser.Scene {
       .setDepth(1000);
 
     this.timerText = this.add
-      .text(12, 42, 'Temps: 0.00s', {
+      .text(12, 38, 'Temps: 0.00s', {
         color: '#ffffff',
         fontSize: '18px',
         stroke: '#000000',
@@ -166,7 +165,7 @@ export default class PlayGame extends Phaser.Scene {
       .setDepth(1000);
 
     this.statusText = this.add
-      .text(12, 70, '', {
+      .text(12, 66, '', {
         color: '#ffe28a',
         fontSize: '18px',
         stroke: '#000000',
@@ -211,10 +210,10 @@ export default class PlayGame extends Phaser.Scene {
     });
 
     const runesCollected = entry.runes.size;
+
     if (runesCollected === this.runes.length && this.isInsideFinishZone(entry.hero.body())) {
       this.winnerId = entry.player.id;
       entry.finishedAtMs = Date.now() - this.raceStartedAt;
-
       this.players.forEach(({ hero }) => hero.setFrozen(true));
     }
 
@@ -244,6 +243,7 @@ export default class PlayGame extends Phaser.Scene {
       const winnerName = this.players.find(({ player }) => player.id === raceState.winnerId)?.player
         .getProfile()
         ?.name;
+
       this.statusText.setText(
         iWon
           ? `🏆 Victoire ! Temps: ${((raceState.finishedAtMs || 0) / 1000).toFixed(2)}s`
@@ -252,7 +252,7 @@ export default class PlayGame extends Phaser.Scene {
       return;
     }
 
-    this.statusText.setText(`Runes: ${runes}/${this.runes.length} — file vers FIN`);
+    this.statusText.setText(`Runes: ${runes}/${this.runes.length} — traverse les zones vers FIN`);
   }
 
   update() {
@@ -262,7 +262,6 @@ export default class PlayGame extends Phaser.Scene {
       if (isHost()) {
         hero.update();
         this.updateRaceStateHost(entry);
-
         player.setState('pos', hero.pos());
       } else {
         const pos = player.getState('pos');
