@@ -12,8 +12,8 @@ export default class PlayGame extends Phaser.Scene {
     super('PlayGame');
   }
 
-  init(data) {
-    this.selectedLevel = data.level || 0; // Utilisez le niveau passé ou par défaut à 0
+  init(data = {}) {
+    this.selectedLevel = data.level || 1; // Utilisez le niveau passé ou par défaut à 1
   }
 
   preload() {
