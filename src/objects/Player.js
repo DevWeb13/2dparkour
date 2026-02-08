@@ -220,11 +220,11 @@ export default class Player {
 
   rightInputIsActive() {
     const dpadX = this.getDpadX();
-    return dpadX > 0.2 || this.joystick.isPressed('right') || this.cursors.right.isDown;
+    return dpadX > 0.2;
   }
 
   leftInputIsActive() {
     const dpadX = this.getDpadX();
-    return dpadX < -0.2 || this.joystick.isPressed('left') || this.cursors.left.isDown;
+    return dpadX < -0.2;
   }
 }
