@@ -38,6 +38,9 @@ export default class PlayGame extends Phaser.Scene {
     this.createRaceUI();
     this.createLeaveButton();
 
+    this.events.once('shutdown', () => this.cleanupLocalControls());
+    this.events.once('destroy', () => this.cleanupLocalControls());
+
     onPlayerJoin(async (player) => {
       const joystick = new Joystick(player, {
         type: 'buttons',
@@ -60,6 +63,7 @@ export default class PlayGame extends Phaser.Scene {
       const entry = {
         player,
         hero,
+        joystick,
         runes: new Set(),
         finishedAtMs: null,
       };
@@ -73,12 +77,31 @@ export default class PlayGame extends Phaser.Scene {
       }
 
       player.onQuit(() => {
+        this.destroyJoystickUI(joystick);
         this.players = this.players.filter(({ player: p }) => p !== player);
         hero.destroy();
       });
     });
   }
 
+
+  cleanupLocalControls() {
+    this.players.forEach(({ joystick }) => this.destroyJoystickUI(joystick));
+  }
+
+  destroyJoystickUI(joystick) {
+    if (!joystick) return;
+
+    // Nettoie explicitement les éléments HTML ajoutés par Playroom pour éviter
+    // de garder d'anciens boutons gauche/droite visibles après un retour menu.
+    const stick = joystick.joystick?.$element;
+    if (stick?.parentNode) stick.parentNode.removeChild(stick);
+
+    Object.values(joystick.buttons || {}).forEach((btn) => {
+      const el = btn?.$element;
+      if (el?.parentNode) el.parentNode.removeChild(el);
+    });
+  }
 
   createLeaveButton() {
     this.leaveButton = this.add
@@ -99,6 +122,7 @@ export default class PlayGame extends Phaser.Scene {
 
   leaveMatch() {
     // Nettoyage visuel immédiat.
+    this.cleanupLocalControls();
     this.players.forEach(({ hero }) => hero.destroy());
     this.players = [];
 
