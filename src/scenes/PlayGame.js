@@ -3,7 +3,7 @@ import Player from '../objects/Player';
 
 import { gameOptions } from '../game';
 
-import { onPlayerJoin, isHost, Joystick, myPlayer } from 'playroomkit';
+import { onPlayerJoin, isHost, Joystick, myPlayer, Multiplayer } from 'playroomkit';
 
 const COURSE_ZONE_COUNT = 3;
 const RUNE_RADIUS = 22;
@@ -36,6 +36,7 @@ export default class PlayGame extends Phaser.Scene {
 
     this.buildCourse();
     this.createRaceUI();
+    this.createLeaveButton();
 
     onPlayerJoin(async (player) => {
       const joystick = new Joystick(player, {
@@ -76,6 +77,41 @@ export default class PlayGame extends Phaser.Scene {
         hero.destroy();
       });
     });
+  }
+
+
+  createLeaveButton() {
+    this.leaveButton = this.add
+      .text(gameOptions.gameWidth - 20, 18, '⟵ Retour', {
+        color: '#ffffff',
+        fontSize: '20px',
+        fontStyle: 'bold',
+        backgroundColor: '#5724a8',
+        padding: { x: 10, y: 6 },
+      })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(1200)
+      .setInteractive({ useHandCursor: true });
+
+    this.leaveButton.on('pointerdown', () => this.leaveMatch());
+  }
+
+  leaveMatch() {
+    // Nettoyage visuel immédiat.
+    this.players.forEach(({ hero }) => hero.destroy());
+    this.players = [];
+
+    // Tentative de sortie propre Playroom.
+    try {
+      const multiplayer = Multiplayer();
+      if (multiplayer?.leaveRoom) multiplayer.leaveRoom();
+    } catch (error) {
+      // Fallback silencieux: on revient au menu même si la room ne répond pas.
+      console.warn('leaveRoom failed', error);
+    }
+
+    this.scene.start('StartMenu');
   }
 
   buildCourse() {
