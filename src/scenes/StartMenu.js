@@ -44,7 +44,7 @@ export default class StartMenu extends Phaser.Scene {
     this.startButton.setFill('#9aff9a');
     this.startButton.on('pointerdown', () => this.startGame());
 
-    this.add.text(90, 400, 'Contrôles mobile: ←  →  JUMP\nQuitter en match: bouton Retour', {
+    this.add.text(90, 400, 'Contrôles mobile: joystick virtuel + JUMP\nQuitter en match: bouton Retour', {
       fill: '#d9d9d9',
       fontSize: '18px',
       lineSpacing: 6,
