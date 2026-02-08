@@ -206,11 +206,24 @@ export default class Player {
     return false;
   }
 
+  getDpadX() {
+    const dpad = this.joystick?.dpad?.();
+    const x = dpad?.x;
+
+    if (x === 'right') return 1;
+    if (x === 'left') return -1;
+    if (typeof x === 'number') return x;
+
+    return 0;
+  }
+
   rightInputIsActive() {
-    return this.joystick.isPressed('right') || this.joystick?.dpad?.().x === 'right';
+    const dpadX = this.getDpadX();
+    return dpadX > 0.35 || this.joystick.isPressed('right');
   }
 
   leftInputIsActive() {
-    return this.joystick.isPressed('left') || this.joystick?.dpad?.().x === 'left';
+    const dpadX = this.getDpadX();
+    return dpadX < -0.35 || this.joystick.isPressed('left');
   }
 }
