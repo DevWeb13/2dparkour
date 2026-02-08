@@ -7,6 +7,7 @@ import { onPlayerJoin, isHost, Joystick, myPlayer } from 'playroomkit';
 
 const COURSE_ZONE_COUNT = 3;
 const RUNE_RADIUS = 22;
+const EXTRA_VERTICAL_ROWS = 14;
 
 export default class PlayGame extends Phaser.Scene {
   constructor() {
@@ -62,7 +63,8 @@ export default class PlayGame extends Phaser.Scene {
 
       const me = myPlayer();
       if (me && me.id === player.id) {
-        this.cameras.main.startFollow(hero.body(), true, 0.1, 0.1);
+        // Suivi horizontal + vertical pour autoriser des parcours plus hauts.
+        this.cameras.main.startFollow(hero.body(), true, 0.12, 0.12);
       }
 
       player.onQuit(() => {
@@ -91,8 +93,13 @@ export default class PlayGame extends Phaser.Scene {
       }
     });
 
+    const paddedData = this.addVerticalSpace(mergedData, EXTRA_VERTICAL_ROWS);
+
+    this.openCoursePassages(paddedData, zoneWidth, zoneHeight + EXTRA_VERTICAL_ROWS);
+    this.addVerticalChallenges(paddedData, zoneWidth, zoneHeight + EXTRA_VERTICAL_ROWS);
+
     this.map = this.make.tilemap({
-      data: mergedData,
+      data: paddedData,
       tileWidth: 32,
       tileHeight: 32,
     });
@@ -104,15 +111,15 @@ export default class PlayGame extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
-    this.spawnPoint = { x: 40, y: this.map.heightInPixels - 96 };
+    this.spawnPoint = { x: 48, y: this.map.heightInPixels - 96 };
 
     const third = this.map.widthInPixels / COURSE_ZONE_COUNT;
-    const baseY = this.map.heightInPixels - 150;
+    const baseY = this.map.heightInPixels - 110;
 
     this.runes = [
-      this.createRune(third * 0.38, baseY - 65, 0),
-      this.createRune(third * 1.44, baseY - 115, 1),
-      this.createRune(third * 2.35, baseY - 85, 2),
+      this.createRune(third * 0.42, baseY - 96, 0),
+      this.createRune(third * 1.47, baseY - 320, 1),
+      this.createRune(third * 2.38, baseY - 230, 2),
     ];
 
     this.finishZone = this.add.rectangle(
@@ -131,6 +138,90 @@ export default class PlayGame extends Phaser.Scene {
         fontStyle: 'bold',
       })
       .setScrollFactor(1);
+  }
+
+
+  addVerticalSpace(data, extraRows) {
+    const rowWidth = data[0].length;
+    const emptyRows = Array.from({ length: extraRows }, () =>
+      Array.from({ length: rowWidth }, () => -1)
+    );
+    return [...emptyRows, ...data];
+  }
+
+  addVerticalChallenges(mergedData, zoneWidth, zoneHeight) {
+    const setSolid = (x, y) => {
+      if (x < 0 || y < 0 || y >= zoneHeight || x >= mergedData[y].length) return;
+      mergedData[y][x] = 0;
+    };
+
+    const makeStair = (baseX, baseY, steps, direction = 1) => {
+      for (let i = 0; i < steps; i++) {
+        setSolid(baseX + i * direction, baseY - i);
+        setSolid(baseX + i * direction + direction, baseY - i);
+      }
+    };
+
+    const top = 6;
+    const h = zoneHeight;
+
+    // Zone 1 : montée progressive.
+    makeStair(8, h - 8, 8, 1);
+    setSolid(18, h - 15);
+    setSolid(19, h - 15);
+
+    // Zone 2 : tour verticale avec paliers.
+    const z2 = zoneWidth + 14;
+    for (let y = h - 6; y >= top + 8; y--) setSolid(z2, y);
+    for (let x = z2; x <= z2 + 4; x++) setSolid(x, h - 18);
+    for (let x = z2 - 5; x <= z2 - 1; x++) setSolid(x, h - 24);
+    for (let x = z2 + 5; x <= z2 + 8; x++) setSolid(x, h - 30);
+
+    // Zone 3 : sections hautes pour forcer un suivi caméra vertical.
+    const z3 = zoneWidth * 2 + 10;
+    makeStair(z3, h - 10, 7, 1);
+    for (let x = z3 + 10; x <= z3 + 16; x++) setSolid(x, h - 24);
+    for (let x = z3 + 18; x <= z3 + 23; x++) setSolid(x, h - 31);
+  }
+
+  openCoursePassages(mergedData, zoneWidth, zoneHeight) {
+    const seamColumns = [zoneWidth - 1, zoneWidth, zoneWidth * 2 - 1, zoneWidth * 2];
+
+    const setSolid = (x, y) => {
+      if (x < 0 || y < 0 || y >= zoneHeight || x >= mergedData[y].length) return;
+      mergedData[y][x] = 0;
+    };
+
+    const setEmpty = (x, y) => {
+      if (x < 0 || y < 0 || y >= zoneHeight || x >= mergedData[y].length) return;
+      mergedData[y][x] = -1;
+    };
+
+    // Supprime les murs verticaux bloquants sur les jonctions entre zones.
+    seamColumns.forEach((col) => {
+      for (let y = 1; y < zoneHeight - 1; y++) {
+        setEmpty(col, y);
+      }
+      setSolid(col, zoneHeight - 1);
+    });
+
+    // Ajoute des petites marches "parkour" pour franchir les passages de zone.
+    const seamSteps = [zoneWidth - 2, zoneWidth * 2 - 2];
+    seamSteps.forEach((x) => {
+      setSolid(x - 1, zoneHeight - 4);
+      setSolid(x, zoneHeight - 5);
+      setSolid(x + 1, zoneHeight - 6);
+      setSolid(x + 2, zoneHeight - 7);
+
+      setSolid(x + 4, zoneHeight - 6);
+      setSolid(x + 5, zoneHeight - 7);
+      setSolid(x + 6, zoneHeight - 8);
+    });
+
+    // Garantit au minimum une ligne de progression au sol.
+    for (let x = 0; x < mergedData[zoneHeight - 1].length; x++) {
+      setSolid(x, zoneHeight - 1);
+    }
   }
 
   createRune(x, y, id) {
