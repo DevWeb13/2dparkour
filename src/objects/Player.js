@@ -108,7 +108,17 @@ export default class Player {
     this.hero.destroy();
   }
 
+  setFrozen(frozen) {
+    this.frozen = frozen;
+
+    if (frozen) {
+      this.hero.body.setVelocity(0, 0);
+      this.hero.body.setAccelerationX(0);
+    }
+  }
+
   update() {
+    if (this.frozen) return;
     // hero on the ground
     if (this.hero.body.blocked.down) {
       // hero can jump
@@ -197,10 +207,10 @@ export default class Player {
   }
 
   rightInputIsActive() {
-    return this.joystick.dpad().x === 'right';
+    return this.joystick.isPressed('right') || this.joystick?.dpad?.().x === 'right';
   }
 
   leftInputIsActive() {
-    return this.joystick.dpad().x === 'left';
+    return this.joystick.isPressed('left') || this.joystick?.dpad?.().x === 'left';
   }
 }
