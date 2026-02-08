@@ -108,7 +108,17 @@ export default class Player {
     this.hero.destroy();
   }
 
+  setFrozen(frozen) {
+    this.frozen = frozen;
+
+    if (frozen) {
+      this.hero.body.setVelocity(0, 0);
+      this.hero.body.setAccelerationX(0);
+    }
+  }
+
   update() {
+    if (this.frozen) return;
     // hero on the ground
     if (this.hero.body.blocked.down) {
       // hero can jump

@@ -2,7 +2,9 @@
   "name": "lareponsedev-2d-muliplayer-platformer-game",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite --host"
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
   },
   "dependencies": {
     "phaser": "^3.60.0",
@@ -13,5 +15,8 @@
   },
   "devDependencies": {
     "vite": "^4.4.3"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
