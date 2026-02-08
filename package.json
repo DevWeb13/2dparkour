@@ -15,5 +15,8 @@
   },
   "devDependencies": {
     "vite": "^4.4.3"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
