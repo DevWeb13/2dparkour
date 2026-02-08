@@ -1,16 +1,10 @@
-// src/scenes/PlayGames.js
+// src/game.js
 
 import Phaser from 'phaser';
 import PlayGame from './scenes/PlayGame';
 import StartMenu from './scenes/StartMenu';
 
-import {
-  onPlayerJoin,
-  insertCoin,
-  isHost,
-  myPlayer,
-  Joystick,
-} from 'playroomkit';
+import { insertCoin } from 'playroomkit';
 import ColorReplacePipelinePlugin from 'phaser3-rex-plugins/plugins/colorreplacepipeline-plugin.js';
 
 export const gameOptions = {

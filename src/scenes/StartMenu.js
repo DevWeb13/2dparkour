@@ -9,41 +9,65 @@ export default class StartMenu extends Phaser.Scene {
   }
 
   create() {
+    this.cameras.main.setBackgroundColor('#1f1b2e');
+
+    this.add.text(70, 40, 'DUEL PARKOUR', {
+      fill: '#ffffff',
+      fontSize: '44px',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 6,
+    });
+
+    this.add.text(70, 92, 'Objectif: 3 runes + FIN', {
+      fill: '#ffd76a',
+      fontSize: '22px',
+      stroke: '#000000',
+      strokeThickness: 4,
+    });
+
     // Créer les boutons pour sélectionner les niveaux
-    let level1Button = this.add
-      .text(100, 100, 'Niveau 1', { fill: '#0f0' })
-      .setInteractive();
-    let level2Button = this.add
-      .text(100, 150, 'Niveau 2', { fill: '#0f0' })
-      .setInteractive();
-    let level3Button = this.add
-      .text(100, 200, 'Niveau 3', { fill: '#0f0' })
-      .setInteractive();
+    this.levelButtons = [
+      this.createButton(90, 150, 'Niveau 1'),
+      this.createButton(90, 205, 'Niveau 2'),
+      this.createButton(90, 260, 'Niveau 3'),
+    ];
 
     // Gestionnaires d'événements pour les boutons de niveau
-    level1Button.on('pointerdown', () => {
-      this.selectedLevel = 1;
-      this.updateButtonColors(level1Button, level2Button);
-    });
-    level2Button.on('pointerdown', () => {
-      this.selectedLevel = 2;
-      this.updateButtonColors(level2Button, level1Button);
-    });
-    level3Button.on('pointerdown', () => {
-      this.selectedLevel = 3;
-      this.updateButtonColors(level3Button, level1Button);
+    this.levelButtons.forEach((button, index) => {
+      button.on('pointerdown', () => this.selectLevel(index + 1));
     });
 
-    // Bouton de démarrage
-    let startButton = this.add
-      .text(100, 250, 'Démarrer', { fill: '#0f0' })
-      .setInteractive();
-    startButton.on('pointerdown', () => this.startGame());
+    this.selectLevel(this.selectedLevel);
+
+    this.startButton = this.createButton(90, 335, 'Lancer la partie');
+    this.startButton.setFill('#9aff9a');
+    this.startButton.on('pointerdown', () => this.startGame());
+
+    this.add.text(90, 400, 'Contrôles mobile: ←  →  JUMP\nQuitter en match: bouton Retour', {
+      fill: '#d9d9d9',
+      fontSize: '18px',
+      lineSpacing: 6,
+    });
   }
 
-  updateButtonColors(selectedButton, otherButton) {
-    selectedButton.setFill('#f00'); // Couleur pour le bouton sélectionné
-    otherButton.setFill('#0f0'); // Couleur par défaut pour l'autre bouton
+  createButton(x, y, label) {
+    return this.add
+      .text(x, y, label, {
+        fill: '#d0ffd0',
+        fontSize: '30px',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setInteractive({ useHandCursor: true });
+  }
+
+  selectLevel(level) {
+    this.selectedLevel = level;
+    this.levelButtons.forEach((button, index) => {
+      button.setFill(index + 1 === level ? '#ff7a7a' : '#d0ffd0');
+    });
   }
 
   startGame() {
