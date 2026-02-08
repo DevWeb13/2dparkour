@@ -39,8 +39,12 @@ export default class PlayGame extends Phaser.Scene {
 
     onPlayerJoin(async (player) => {
       const joystick = new Joystick(player, {
-        type: 'dpad',
-        buttons: [{ id: 'jump', label: 'JUMP' }],
+        type: 'buttons',
+        buttons: [
+          { id: 'left', label: '←' },
+          { id: 'right', label: '→' },
+          { id: 'jump', label: 'JUMP' },
+        ],
       });
 
       const hero = new Player(
@@ -97,6 +101,7 @@ export default class PlayGame extends Phaser.Scene {
 
     this.openCoursePassages(paddedData, zoneWidth, zoneHeight + EXTRA_VERTICAL_ROWS);
     this.addVerticalChallenges(paddedData, zoneWidth, zoneHeight + EXTRA_VERTICAL_ROWS);
+    this.openFinishAccess(paddedData, zoneWidth, zoneHeight + EXTRA_VERTICAL_ROWS);
 
     this.map = this.make.tilemap({
       data: paddedData,
@@ -123,16 +128,16 @@ export default class PlayGame extends Phaser.Scene {
     ];
 
     this.finishZone = this.add.rectangle(
-      this.map.widthInPixels - 70,
-      this.map.heightInPixels - 130,
-      88,
-      160,
+      this.map.widthInPixels - 56,
+      this.map.heightInPixels - 64,
+      80,
+      96,
       0x00ff88,
       0.25
     );
 
     this.add
-      .text(this.finishZone.x - 27, this.finishZone.y - 75, 'FIN', {
+      .text(this.finishZone.x - 22, this.finishZone.y - 44, 'FIN', {
         color: '#003322',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -222,6 +227,37 @@ export default class PlayGame extends Phaser.Scene {
     for (let x = 0; x < mergedData[zoneHeight - 1].length; x++) {
       setSolid(x, zoneHeight - 1);
     }
+  }
+
+
+  openFinishAccess(mergedData, zoneWidth, zoneHeight) {
+    const setSolid = (x, y) => {
+      if (x < 0 || y < 0 || y >= zoneHeight || x >= mergedData[y].length) return;
+      mergedData[y][x] = 0;
+    };
+
+    const setEmpty = (x, y) => {
+      if (x < 0 || y < 0 || y >= zoneHeight || x >= mergedData[y].length) return;
+      mergedData[y][x] = -1;
+    };
+
+    const endX = mergedData[0].length - 1;
+
+    // Ouvre un couloir final vers la zone FIN (à droite) et évite les murs fermés.
+    for (let x = endX - 7; x <= endX; x++) {
+      for (let y = zoneHeight - 5; y >= zoneHeight - 10; y--) {
+        setEmpty(x, y);
+      }
+      setSolid(x, zoneHeight - 1);
+    }
+
+    // Crée une petite rampe de montée vers FIN.
+    setSolid(endX - 9, zoneHeight - 3);
+    setSolid(endX - 8, zoneHeight - 3);
+    setSolid(endX - 7, zoneHeight - 4);
+    setSolid(endX - 6, zoneHeight - 4);
+    setSolid(endX - 5, zoneHeight - 5);
+    setSolid(endX - 4, zoneHeight - 5);
   }
 
   createRune(x, y, id) {

@@ -207,10 +207,10 @@ export default class Player {
   }
 
   rightInputIsActive() {
-    return this.joystick.dpad().x === 'right';
+    return this.joystick.isPressed('right') || this.joystick?.dpad?.().x === 'right';
   }
 
   leftInputIsActive() {
-    return this.joystick.dpad().x === 'left';
+    return this.joystick.isPressed('left') || this.joystick?.dpad?.().x === 'left';
   }
 }
