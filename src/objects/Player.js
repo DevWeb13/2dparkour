@@ -25,6 +25,7 @@ export default class Player {
     this.joystick = joystick;
     this.jumpKeyIsDown = false;
     this.jumpKeyDownAt = 0;
+    this.cursors = scene.input.keyboard.createCursorKeys();
 
     // adding the hero sprite and replace it's color with playerColor
     this.hero = scene.physics.add.sprite(x, y, 'hero');
@@ -108,7 +109,17 @@ export default class Player {
     this.hero.destroy();
   }
 
+  setFrozen(frozen) {
+    this.frozen = frozen;
+
+    if (frozen) {
+      this.hero.body.setVelocity(0, 0);
+      this.hero.body.setAccelerationX(0);
+    }
+  }
+
   update() {
+    if (this.frozen) return;
     // hero on the ground
     if (this.hero.body.blocked.down) {
       // hero can jump
@@ -181,7 +192,7 @@ export default class Player {
   }
 
   spaceInputIsActive(duration) {
-    if (!this.jumpKeyIsDown && this.joystick.isPressed('jump')) {
+    if (!this.jumpKeyIsDown && (this.joystick.isPressed('jump') || this.cursors.up.isDown || this.cursors.space.isDown)) {
       this.jumpKeyIsDown = true;
       this.jumpKeyDownAt = Date.now();
     }
@@ -189,18 +200,31 @@ export default class Player {
   }
 
   spaceInputReleased() {
-    if (!this.joystick.isPressed('jump')) {
+    if (!(this.joystick.isPressed('jump') || this.cursors.up.isDown || this.cursors.space.isDown)) {
       this.jumpKeyIsDown = false;
       return true;
     }
     return false;
   }
 
+  getDpadX() {
+    const dpad = this.joystick?.dpad?.();
+    const x = dpad?.x;
+
+    if (x === 'right') return 1;
+    if (x === 'left') return -1;
+    if (typeof x === 'number') return x;
+
+    return 0;
+  }
+
   rightInputIsActive() {
-    return this.joystick.dpad().x === 'right';
+    const dpadX = this.getDpadX();
+    return dpadX > 0.2 || this.joystick.isPressed('right') || this.cursors.right.isDown;
   }
 
   leftInputIsActive() {
-    return this.joystick.dpad().x === 'left';
+    const dpadX = this.getDpadX();
+    return dpadX < -0.2 || this.joystick.isPressed('left') || this.cursors.left.isDown;
   }
 }
